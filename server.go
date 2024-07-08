@@ -2,7 +2,7 @@ package main
 
 import (
 	"bytes"
-	"firstApi/models"
+	"firstApi/repository"
 	"firstApi/routes"
 	"firstApi/util"
 	"net/http"
@@ -35,8 +35,11 @@ func (s *Server) ListenAndServe() error {
 
 	setupMiddlewares(e)
 
-	db := models.ConnectDatabase("goDB")
-	models.Migrate(db)
+	db, err := repository.ConnectDatabase("goDB")
+	if err != nil {
+		return err
+	}
+	repository.Migrate(db)
 
 	api := e.Group("/api")
 
