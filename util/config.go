@@ -7,7 +7,8 @@ import (
 )
 
 type Config struct {
-	Port string
+	Port   string
+	DBName string
 }
 
 // NewConfig creates a new instance of Config.
@@ -19,7 +20,8 @@ func NewConfig() *Config {
 	}
 
 	return &Config{
-		Port: getEnvVar("PORT", "3000"),
+		Port:   getEnvVar("PORT", "3000"),
+		DBName: getEnvVar("DB_NAME", "goDB"),
 	}
 }
 

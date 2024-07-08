@@ -35,15 +35,19 @@ func (s *Server) ListenAndServe() error {
 
 	setupMiddlewares(e)
 
-	db, err := repository.ConnectDatabase("goDB")
+	storage, err := repository.NewStorage(config.DBName)
 	if err != nil {
 		return err
 	}
-	repository.Migrate(db)
+
+	err = storage.Migrate()
+	if err != nil {
+		return err
+	}
 
 	api := e.Group("/api")
 
-	routes.SetupRoute(api)
+	routes.SetupRoute(api, storage)
 
 	return e.Start(":" + config.Port)
 }

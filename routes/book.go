@@ -8,9 +8,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func BookRoutes(g *echo.Group) {
-	bookRepo := repository.NewGormBookRepo(repository.DB)
-
+func BookRoutes(g *echo.Group, bookRepo repository.BookRepository) {
 	bookHandler := handlers.NewBookHandler(bookRepo)
 
 	g.POST("", bookHandler.CreateBook, middlewares.GetAuthUser())

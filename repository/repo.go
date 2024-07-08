@@ -14,6 +14,41 @@ type Repository interface {
 	BookRepository
 }
 
+type Storage struct {
+	db *gorm.DB
+	GormUserRepo
+	GormBookRepo
+}
+
+func NewStorage(dbName string) (*Storage, error) {
+	db, err := connectDatabase(dbName)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Storage{
+		db:           db,
+		GormUserRepo: GormUserRepo{DB: db},
+		GormBookRepo: GormBookRepo{DB: db},
+	}, nil
+}
+
+// Migrate applies model migrations to the database.
+func (s *Storage) Migrate() error {
+	var err error
+
+	err = s.db.AutoMigrate(&models.Book{})
+	if err != nil {
+		return err
+	}
+
+	err = s.db.AutoMigrate(&models.User{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // UserRepository represents the functionality needed to be implemented by
 // any user interacting repo.
 type UserRepository interface {
@@ -37,8 +72,8 @@ type BookRepository interface {
 
 var DB *gorm.DB
 
-// ConnectDatabase established a new gorm sqlite connection.
-func ConnectDatabase(dbName string) (*gorm.DB, error) {
+// connectDatabase established a new gorm sqlite connection.
+func connectDatabase(dbName string) (*gorm.DB, error) {
 	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		return nil, err
@@ -47,10 +82,4 @@ func ConnectDatabase(dbName string) (*gorm.DB, error) {
 	DB = database
 
 	return DB, nil
-}
-
-// Migrate applies model migrations to the database.
-func Migrate(db *gorm.DB) {
-	db.AutoMigrate(&models.Book{})
-	db.AutoMigrate(&models.User{})
 }
