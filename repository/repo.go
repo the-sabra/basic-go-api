@@ -16,8 +16,8 @@ type Repository interface {
 
 type Storage struct {
 	db *gorm.DB
-	GormUserRepo
-	GormBookRepo
+	*GormUserRepo
+	*GormBookRepo
 }
 
 func NewStorage(dbName string) (*Storage, error) {
@@ -28,8 +28,8 @@ func NewStorage(dbName string) (*Storage, error) {
 
 	return &Storage{
 		db:           db,
-		GormUserRepo: GormUserRepo{DB: db},
-		GormBookRepo: GormBookRepo{DB: db},
+		GormUserRepo: NewGormUserRepo(db),
+		GormBookRepo: NewGormBookRepo(db),
 	}, nil
 }
 
@@ -70,16 +70,12 @@ type BookRepository interface {
 	DeleteBook(id int) error
 }
 
-var DB *gorm.DB
-
 // connectDatabase established a new gorm sqlite connection.
 func connectDatabase(dbName string) (*gorm.DB, error) {
-	database, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(dbName), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}
 
-	DB = database
-
-	return DB, nil
+	return db, nil
 }
