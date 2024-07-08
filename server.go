@@ -13,21 +13,18 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 )
 
-type Server struct {
-	Addr string
-}
+type Server struct{}
 
 // NewServer creates a new instance of Server.
-func NewServer(addr string) *Server {
-	return &Server{
-		Addr: addr,
-	}
+func NewServer() *Server {
+	return &Server{}
 }
 
 // ListenAndServe represents the main entry point of the program.
 //
 // Sets up DB connection logic, registers routes and listens for connections.
 func (s *Server) ListenAndServe() error {
+	config := util.NewConfig()
 	e := echo.New()
 
 	e.Validator = &util.Validator{Instance: validator.New()}
@@ -36,6 +33,20 @@ func (s *Server) ListenAndServe() error {
 		return c.String(http.StatusOK, "Hello, World!")
 	})
 
+	setupMiddlewares(e)
+
+	db := models.ConnectDatabase("goDB")
+	models.Migrate(db)
+
+	api := e.Group("/api")
+
+	routes.SetupRoute(api)
+
+	return e.Start(":" + config.Port)
+}
+
+// setupMiddlewares sets up middlewares for logging, timming and recovering.
+func setupMiddlewares(e *echo.Echo) {
 	e.Use(middleware.LoggerWithConfig(middleware.LoggerConfig{
 		Format:           `${time_rfc3339} | ${method} ${uri} | ${status} | ${custom} | ${remote_ip} | ${user_agent}` + "\n",
 		CustomTimeFormat: time.RFC3339,
@@ -55,14 +66,5 @@ func (s *Server) ListenAndServe() error {
 		}
 	})
 
-	db := models.ConnectDatabase("goDB")
-	models.Migrate(db)
-
 	e.Use(middleware.Recover())
-
-	api := e.Group("/api")
-
-	routes.SetupRoute(api)
-
-	return e.Start(s.Addr)
 }
