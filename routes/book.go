@@ -3,21 +3,17 @@ package routes
 import (
 	"firstApi/handlers"
 	"firstApi/middlewares"
-	"firstApi/models"
 	"firstApi/repository"
 
 	"github.com/labstack/echo/v4"
 )
 
-func BookRoutes(g *echo.Group){
+func BookRoutes(g *echo.Group, bookRepo repository.BookRepository) {
+	bookHandler := handlers.NewBookHandler(bookRepo)
 
-	bookRepo := repository.NewGormBookRepo(models.DB)
-
-	bookHandler:= handlers.NewBookHandler(bookRepo); 
-	 
 	g.POST("", bookHandler.CreateBook, middlewares.GetAuthUser())
-	g.GET("",bookHandler.GetBooks)
+	g.GET("", bookHandler.GetBooks)
 	g.GET("/:id", bookHandler.GetBook)
-	g.PATCH("/:id",bookHandler.UpdateBook, middlewares.GetAuthUser()) 
-	g.DELETE("/:id",bookHandler.DeleteBook)
-}  
+	g.PATCH("/:id", bookHandler.UpdateBook, middlewares.GetAuthUser())
+	g.DELETE("/:id", bookHandler.DeleteBook)
+}
